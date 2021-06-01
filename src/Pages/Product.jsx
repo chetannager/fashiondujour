@@ -114,7 +114,7 @@ const Product = (props) => {
                         response.data.products.map((product) => {
                             temp.push(product.sub_category_name);
                         });
-                        temp = temp.filter(function(item, pos) {
+                        temp = temp.filter(function (item, pos) {
                             return temp.indexOf(item) == pos;
                         })
                         setCategoriesByproducts(temp);
@@ -128,22 +128,22 @@ const Product = (props) => {
     }
 
     const addProductToWishlist = (product_id) => {
-        if(props.isLoggedIn){
+        if (props.isLoggedIn) {
             axios.post('http://fashiondujourapi.com/v1/wishlist-add', {
-            customer_id: props.customerDetails["customer_id"],
-            product_id: product_id
-        })
-            .then(function (response) {
-                if (response.status === 200) {
-                    if (response.data.successful) {
-                        Alert.success('Successfully added to wishlist.');
+                customer_id: props.customerDetails["customer_id"],
+                product_id: product_id
+            })
+                .then(function (response) {
+                    if (response.status === 200) {
+                        if (response.data.successful) {
+                            Alert.success('Successfully added to wishlist.');
+                        }
                     }
-                }
-            })
-            .catch(function (error) {
-                console.log(error);
-            })
-        }else{
+                })
+                .catch(function (error) {
+                    console.log(error);
+                })
+        } else {
             props.login();
         }
     }
@@ -223,12 +223,29 @@ const Product = (props) => {
                                                             <p style={starStyle}><Icon icon="star" style={{ color: 'yellow', fontSize: '14px' }} />&nbsp;&nbsp; {product.product_current_rating} | {product.product_max_rating}</p>
                                                             <div className="d-flex align-items-center ml-20 justify-content-center">
                                                                 <Whisper placement="top" trigger="hover" speaker={addTooltip}>
-                                                                    <IconButton onClick={() => Alert.success('Successfully added to cart.')} className="button-1 mr-10" icon={<Icon icon="plus" />} circle size="lg" />
+                                                                    <IconButton onClick={() => {
+                                                                        if (props.isLoggedIn) {
+                                                                            props.addToCart({
+                                                                                "product_id": product.product_id,
+                                                                                "product_name": product.product_name,
+                                                                                "product_description": product.product_description,
+                                                                                "product_images": product.product_images[0],
+                                                                                "product_discount_price": product.product_discount_price,
+                                                                                "category_id": product.category_id,
+                                                                                "sub_category_id": product.sub_category_id,
+                                                                                "product_qty": 1,
+                                                                                "product_total_price": product.product_discount_price
+
+                                                                            });
+                                                                        } else {
+                                                                            props.login();
+                                                                        }
+                                                                    }} className="button-1 mr-10" icon={<Icon icon="plus" />} circle size="lg" />
                                                                 </Whisper>
                                                                 <Whisper placement="top" trigger="hover" speaker={wishTooltip}>
-                                                                    <IconButton onClick={() =>{
+                                                                    <IconButton onClick={() => {
                                                                         addProductToWishlist(product.product_id);
-                                                                    } } className="button-2 mr-10" icon={<Icon icon="cart-plus" />} circle size="lg" />
+                                                                    }} className="button-2 mr-10" icon={<Icon icon="cart-plus" />} circle size="lg" />
                                                                 </Whisper>
                                                                 <Link to={"/product/detail/" + product.product_id}>
                                                                     <Whisper placement="top" trigger="hover" speaker={detailTooltip}>
@@ -308,12 +325,13 @@ const mapStateToProps = state => {
         cart: state.dCart.cart,
         payment: state.dCart.payment,
         isLoggedIn: state.dCustomer.isLoggedIn,
-        customerDetails: state.dCustomer.customerDetails
+        customerDetails: state.dCustomer.customerDetails,
     }
 }
 
 const mapActionToProps = {
     addToCart: cartActions.addToCart,
+    deleteToCart: cartActions.deleteToCart,
     checkIsLoggedIn: customerActions.checkIsLoggedIn,
     setLoggedIn: customerActions.setLoggedIn,
     setCustomerDetails: customerActions.setCustomerDetails

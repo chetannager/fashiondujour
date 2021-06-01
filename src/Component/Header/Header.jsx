@@ -17,6 +17,7 @@ import TreeView from '@material-ui/lab/TreeView';
 import TreeItem from '@material-ui/lab/TreeItem';
 import { connect } from 'react-redux';
 import * as customerActions from "./../../actions/dCustomer"
+import * as cartActions from "../../actions/dCart"
 
 const style = {
     color: '#30252F',
@@ -131,7 +132,7 @@ const Header = (props) => {
                                 </li>
                                 <li>
                                     <IconButton aria-label="cart" onClick={props.show}>
-                                        <Badge badgeContent={props.isLoggedIn ? 2 : 0} color="error">
+                                        <Badge badgeContent={props.isLoggedIn ? props.cart.length > 0 ? props.cart.length : 0 : 0} color="error">
                                             <ShoppingCartIcon style={{ fontSize: '20px', color: '#30252F' }} />
                                         </Badge>
                                     </IconButton>
@@ -353,15 +354,18 @@ const Header = (props) => {
 
 const mapStateToProps = state => {
     return {
+        cart: state.dCart.cart,
         isLoggedIn: state.dCustomer.isLoggedIn,
         customerDetails: state.dCustomer.customerDetails
     }
-  }
-  
-  const mapActionToProps = {
+}
+
+const mapActionToProps = {
+    addToCart: cartActions.addToCart,
+    deleteToCart: cartActions.deleteToCart,
     checkIsLoggedIn: customerActions.checkIsLoggedIn,
     setLoggedIn: customerActions.setLoggedIn,
     setCustomerDetails: customerActions.setCustomerDetails
-  }
-  
-  export default connect(mapStateToProps, mapActionToProps)(Header)
+}
+
+export default connect(mapStateToProps, mapActionToProps)(Header)
