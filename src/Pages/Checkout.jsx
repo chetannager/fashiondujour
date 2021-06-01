@@ -1,6 +1,6 @@
 import React from 'react'
 import Footer from '../Component/Footer/Footer'
-import { Link } from 'react-router-dom'
+import { Link, useHistory } from 'react-router-dom'
 import FormControl from '@material-ui/core/FormControl';
 import InputLabel from '@material-ui/core/InputLabel';
 import InputAdornment from '@material-ui/core/InputAdornment';
@@ -10,6 +10,11 @@ import { MuiPickersUtilsProvider, KeyboardTimePicker, KeyboardDatePicker } from 
 import { Button, ButtonGroup, Icon, Steps, Modal, Radio, RadioGroup, IconButton } from 'rsuite';
 import { BottomSheet } from 'react-spring-bottom-sheet'
 import 'react-spring-bottom-sheet/dist/style.css'
+import axios from 'axios';
+import { connect } from 'react-redux';
+import * as customerActions from "../actions/dCustomer"
+import * as cartActions from "../actions/dCart"
+import Product from './Product';
 
 const nameStyle = {
     color: '#30252F',
@@ -60,6 +65,7 @@ const cardData = [
 ];
 
 const Checkout = (props) => {
+    const history = useHistory();
     const [step, setStep] = React.useState(0);
     // const [isSelected, setCheck] = React.useState();
     // The first commit of Material-UI
@@ -127,6 +133,63 @@ const Checkout = (props) => {
     function openCouponModal() {
         setCoupon(true);
     }
+
+    function calculateProductsMRP() {
+        var totalPrice = 0;
+        props.cart.forEach((product) => {
+            totalPrice += product.product_original_price;
+        })
+        return totalPrice;
+
+    }
+
+
+    function calculateProductsDiscountedPrice() {
+        var totalDiscountPrice = 0;
+        props.cart.forEach((product) => {
+            totalDiscountPrice += product.product_discount;
+        })
+        return totalDiscountPrice;
+
+    }
+
+    const [addresses, setAddresses] = React.useState([]);
+
+    const [paymentOption, setPaymentOption] = React.useState(1);
+
+    function calculateProductsTotalAmount() {
+        var totalAmount = 0;
+        props.cart.forEach((product) => {
+            totalAmount += product.product_total_price;
+        })
+        return totalAmount;
+
+    }
+
+    const getAllAddress = () => {
+        axios.post('http://fashiondujourapi.com/v1/addresses', {
+            customer_id: props.customerDetails["customer_id"]
+        })
+            .then(function (response) {
+                if (response.status === 200) {
+                    if (response.data.RESPONSE.successful) {
+                        setAddresses(response.data.RESPONSE.address);
+                    }
+                }
+            })
+            .catch(function (error) {
+                console.log(error);
+            })
+    }
+
+
+    React.useEffect(() => {
+        props.checkIsLoggedIn();
+        if (props.isLoggedIn) {
+            getAllAddress();
+        }
+    }, [])
+
     return (
         <React.Fragment>
             {
@@ -183,239 +246,173 @@ const Checkout = (props) => {
                         /********************************************************************************/
                     }
 
-                    <div className="col-md-2 mb-30 checkout-left">
-                        <Steps current={step} vertical style={styles}>
-                            <Steps.Item icon={<Icon icon="map-marker" size="2x" />} title="Delivery Address" description="Please select the address at which we can deliver your product." />
-                            <Steps.Item icon={<Icon icon="history" size="2x" />} title="Order Summery" description="Please check the product, price and quantity before going to the final step." />
-                            <Steps.Item icon={<Icon icon="credit-card-alt" size="2x" />} title="Payment Detail" description="Please select the payment mode." />
-                        </Steps>
-                        <div className="d-flex justify-content-between mt-20">
-                            <Button appearance="primary" style={{ backgroundColor: "#30252F" }} disabled={step == 0} onClick={onPrevious}>previous</Button>
-                            <Button appearance="primary" style={{ backgroundColor: "#30252F" }} disabled={step == 2} onClick={onNext}>Next</Button>
-                        </div>
-                    </div>
-
                     {
-                        /********************************************************************************/
-                        /********************************************************************************/
-                        /*********************************MIDDLE MOST SECTION***************************/
-                        /********************************************************************************/
-                        /********************************************************************************/
-                    }
-
-                    {/*************************************FIRST STEP**************************************/}
-
-                    <div className="col-md-7" style={{ display: step == 0 ? "block" : "none" }}>
-                        <div className="d-flex flex-column mb-20" style={{ paddingtop: '7px', paddingBottom: '7px', width: '30%', backgroundColor: '#30252F', color: 'white', borderRadius: '30px' }}>
-                            <h4 style={{ color: 'white', fontWeight: '600', textAlign: 'center' }}>Delivery Address</h4>
-                        </div>
-                        <div className="row">
-                            <div className="col-md-4">
-                                <div className="mb-10" style={{ padding: '10px', backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: '10px' }}>
-                                    <h5 style={{ fontWeight: '700', letterSpacing: '0.5px' }}>Siddharth Kumar</h5>
-                                    <hr className="mt-10 mb-10 w-25" style={{ borderTop: '2px solid rgba(0,0,0,0.4)' }} />
-                                    <p style={{ color: 'rgba(0,0,0,0.5)', fontSize: '13px', fontWeight: '600', }}>M II/112 Sector-C, Aliganj, yojana Jankipuram, Lucknow, Uttar Pradesh, 226001</p>
-                                    <p style={{ color: 'rgba(0,0,0,0.6)', fontSize: '14px', fontWeight: '700', }}>Mobile No : 9076652887</p>
-                                    <ButtonGroup className="mt-10">
-                                        <Button appearance="primary" style={{ backgroundColor: '#30252F' }} ><Icon icon="trash-o" /></Button>
-                                        <Button appearance="primary" style={{ backgroundColor: '#30252F' }}><Icon icon="edit" /></Button>
-                                    </ButtonGroup>
+                        props.cart.length != 0 ? (
+                            <React.Fragment>
+                                <div className="col-md-2 mb-30 checkout-left">
+                                    <Steps current={step} vertical style={styles}>
+                                        <Steps.Item icon={<Icon icon="map-marker" size="2x" />} title="Delivery Address" description="Please select the address at which we can deliver your product." />
+                                        <Steps.Item icon={<Icon icon="history" size="2x" />} title="Order Summery" description="Please check the product, price and quantity before going to the final step." />
+                                        <Steps.Item icon={<Icon icon="credit-card-alt" size="2x" />} title="Payment Detail" description="Please select the payment mode." />
+                                    </Steps>
+                                    <div className="d-flex justify-content-between mt-20">
+                                        <Button appearance="primary" style={{ backgroundColor: "#30252F" }} disabled={step == 0} onClick={onPrevious}>previous</Button>
+                                        <Button appearance="primary" style={{ backgroundColor: "#30252F" }} disabled={step == 2} onClick={onNext}>Next</Button>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="col-md-4">
-                                <div className="mb-10" style={{ padding: '10px', backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: '10px' }}>
-                                    <h5 style={{ fontWeight: '700', letterSpacing: '0.5px' }}>Siddharth Kumar</h5>
-                                    <hr className="mt-10 mb-10 w-25" style={{ borderTop: '2px solid rgba(0,0,0,0.4)' }} />
-                                    <p style={{ color: 'rgba(0,0,0,0.5)', fontSize: '13px', fontWeight: '600', }}>M II/112 Sector-C, Aliganj, yojana Jankipuram, Lucknow, Uttar Pradesh, 226001</p>
-                                    <p style={{ color: 'rgba(0,0,0,0.6)', fontSize: '14px', fontWeight: '700', }}>Mobile No : 9076652887</p>
-                                    <ButtonGroup className="mt-10">
-                                        <Button appearance="primary" style={{ backgroundColor: '#30252F' }} ><Icon icon="trash-o" /></Button>
-                                        <Button appearance="primary" style={{ backgroundColor: '#30252F' }}><Icon icon="edit" /></Button>
-                                    </ButtonGroup>
-                                </div>
-                            </div>
-                            <div className="col-md-4">
-                                <div className="mb-10" style={{ padding: '10px', backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: '10px' }}>
-                                    <h5 style={{ fontWeight: '700', letterSpacing: '0.5px' }}>Siddharth Kumar</h5>
-                                    <hr className="mt-10 mb-10 w-25" style={{ borderTop: '2px solid rgba(0,0,0,0.4)' }} />
-                                    <p style={{ color: 'rgba(0,0,0,0.5)', fontSize: '13px', fontWeight: '600', }}>M II/112 Sector-C, Aliganj, yojana Jankipuram, Lucknow, Uttar Pradesh, 226001</p>
-                                    <p style={{ color: 'rgba(0,0,0,0.6)', fontSize: '14px', fontWeight: '700', }}>Mobile No : 9076652887</p>
-                                    <ButtonGroup className="mt-10">
-                                        <Button appearance="primary" style={{ backgroundColor: '#30252F' }} ><Icon icon="trash-o" /></Button>
-                                        <Button appearance="primary" style={{ backgroundColor: '#30252F' }}><Icon icon="edit" /></Button>
-                                    </ButtonGroup>
-                                </div>
-                            </div>
-                            <div className="col-md-4">
-                                <div className="mb-10" style={{ padding: '10px', backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: '10px' }}>
-                                    <h5 style={{ fontWeight: '700', letterSpacing: '0.5px' }}>Siddharth Kumar</h5>
-                                    <hr className="mt-10 mb-10 w-25" style={{ borderTop: '2px solid rgba(0,0,0,0.4)' }} />
-                                    <p style={{ color: 'rgba(0,0,0,0.5)', fontSize: '13px', fontWeight: '600', }}>M II/112 Sector-C, Aliganj, yojana Jankipuram, Lucknow, Uttar Pradesh, 226001</p>
-                                    <p style={{ color: 'rgba(0,0,0,0.6)', fontSize: '14px', fontWeight: '700', }}>Mobile No : 9076652887</p>
-                                    <ButtonGroup className="mt-10">
-                                        <Button appearance="primary" style={{ backgroundColor: '#30252F' }} ><Icon icon="trash-o" /></Button>
-                                        <Button appearance="primary" style={{ backgroundColor: '#30252F' }}><Icon icon="edit" /></Button>
-                                    </ButtonGroup>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
 
-                    {/*************************************SECOND STEP**************************************/}
+                                {
+                                    /********************************************************************************/
+                                    /********************************************************************************/
+                                    /*********************************MIDDLE MOST SECTION***************************/
+                                    /********************************************************************************/
+                                    /********************************************************************************/
+                                }
 
-                    <div className="col-md-7" style={{ display: step == 1 ? "block" : "none" }}>
-                        <div className="d-flex flex-column mb-20" style={{ paddingtop: '7px', paddingBottom: '7px', width: '30%', backgroundColor: '#30252F', color: 'white', borderRadius: '30px' }}>
-                            <h4 style={{ color: 'white', fontWeight: '600', textAlign: 'center' }}>Order Summary</h4>
-                        </div>
-                        {
-                            ['', ''].map((data) => {
-                                return <div className="d-flex justify-content-between mb-10" style={{ backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: '10px', padding: '10px' }}>
-                                    <div className="d-flex">
-                                        <div className="">
-                                            <img src="./imgs/Womens/DressBerry/Dresses/Women Black & Off-White Tropical Printed A-Line Dress/img1.jpg" height="130px" width="100px" style={{ borderRadius: '10px' }} alt="product" />
+                                {/*************************************FIRST STEP**************************************/}
+
+                                <div className="col-md-7" style={{ display: step == 0 ? "block" : "none" }}>
+                                    <div className="d-flex flex-column mb-20" style={{ paddingtop: '7px', paddingBottom: '7px', width: '30%', backgroundColor: '#30252F', color: 'white', borderRadius: '30px' }}>
+                                        <h4 style={{ color: 'white', fontWeight: '600', textAlign: 'center' }}>Delivery Address</h4>
+                                    </div>
+                                    <div className="row">
+                                        {
+                                            addresses.length != 0 ? (
+                                                addresses.map((address) => {
+                                                    return (
+                                                        <div className="col-md-6">
+                                                            <Radio>
+                                                                <div className="mb-10" style={{ padding: '10px', backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: '10px' }}>
+                                                                    <h5 style={{ fontWeight: '700', letterSpacing: '0.5px' }}>{address["customer_name"]}</h5>
+                                                                    <hr className="mt-10 mb-10 w-25" style={{ borderTop: '2px solid rgba(0,0,0,0.4)' }} />
+                                                                    <p style={{ color: 'rgba(0,0,0,0.5)', fontSize: '13px', fontWeight: '600', }}>{address["customer_address"]}</p>
+                                                                    <p style={{ color: 'rgba(0,0,0,0.6)', fontSize: '14px', fontWeight: '700', }}>Mobile No : {address["customer_mobile_number"]}</p>
+                                                                    <ButtonGroup className="mt-10">
+                                                                        <Button appearance="primary" style={{ backgroundColor: '#30252F' }} ><Icon icon="trash-o" /></Button>
+                                                                        <Button appearance="primary" style={{ backgroundColor: '#30252F' }}><Icon icon="edit" /></Button>
+                                                                    </ButtonGroup>
+                                                                </div>
+                                                            </Radio>
+                                                        </div>
+                                                    )
+                                                })
+                                            ) : (
+                                                <div>
+                                                    <button onClick={() => {
+                                                        history.push("/address");
+                                                    }}>Add new Address</button>
+                                                </div>
+                                            )
+                                        }
+                                    </div>
+                                </div>
+
+                                {/*************************************SECOND STEP**************************************/}
+
+                                <div className="col-md-7" style={{ display: step == 1 ? "block" : "none" }}>
+                                    <div className="d-flex flex-column mb-20" style={{ paddingtop: '7px', paddingBottom: '7px', width: '30%', backgroundColor: '#30252F', color: 'white', borderRadius: '30px' }}>
+                                        <h4 style={{ color: 'white', fontWeight: '600', textAlign: 'center' }}>Order Summary</h4>
+                                    </div>
+                                    {
+                                        props.cart.map((product) => {
+                                            return <div className="d-flex justify-content-between mb-10" style={{ backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: '10px', padding: '10px' }}>
+                                                <div className="d-flex">
+                                                    <div className="">
+                                                        <img src={product.product_images} height="130px" width="100px" style={{ borderRadius: '10px' }} alt="product" />
+                                                    </div>
+                                                    <div className="ml-10">
+                                                        <h5 style={{ fontWeight: '700', color: '#30252F', letterSpacing: '0.4px', marginBottom: '5px' }}>BlackBerry</h5>
+                                                        <p style={{ fontSize: '14px', color: 'black', fontWeight: '400' }}>{product.product_name}</p>
+                                                        <p className="mt-0" style={{ fontSize: '15px', color: 'rgba(0,0,0,0.5)', fontWeight: '600' }}>{product.sub_category_name}</p>
+                                                        <div className="mt-20">
+                                                            <Button onClick={openSizeModal} style={{ backgroundColor: '#30252F', color: 'white', fontSize: '13px' }}>Size : S &nbsp; <Icon icon="arrow-down" style={{ fontSize: '13px' }} /></Button>
+                                                            <Button onClick={openQuantityModal} style={{ backgroundColor: '#30252F', color: 'white', fontSize: '13px', marginLeft: '6px' }}>Qty : {product.product_qty}&nbsp; <Icon icon="arrow-down" style={{ fontSize: '13px' }} /></Button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <p style={{ fontSize: '16px', color: 'black', fontWeight: '700' }}>₹{product.product_discount_price}</p>
+                                                    <div className="d-flex">
+                                                        <p className="mt-0" style={{ fontSize: '15px', textDecoration: 'line-through', color: 'rgba(0,0,0,0.5)', fontWeight: '600' }}>₹{product.product_original_price}</p>
+                                                        <p className="mt-0" style={{ marginLeft: '8px', fontSize: '15px', color: 'red', fontWeight: '500' }}>{product.product_discount_percentage}% OFF</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        })
+                                    }
+
+
+                                </div>
+
+                                {/*************************************THIRD STEP**************************************/}
+
+                                <div className="col-md-7" style={{ display: step == 2 ? "block" : "none" }}>
+                                    <div className="d-flex flex-column mb-20" style={{ paddingtop: '7px', paddingBottom: '7px', width: '30%', backgroundColor: '#30252F', color: 'white', borderRadius: '30px' }}>
+                                        <h4 style={{ color: 'white', fontWeight: '600', textAlign: 'center' }}>Payment</h4>
+                                    </div>
+                                    <div className="row">
+                                        <div className="col-md-6" style={{ padding: '10px', cursor: 'pointer' }}>
+                                            <div onClick={()=>{
+                                                setPaymentOption(0);
+                                            }} className="d-flex flex-column align-items-center" style={{ padding: '30px', borderRadius: '9px', backgroundColor: 'rgba(0,0,0,0.05)' }}>
+                                                <input type="radio" value="0" style={{ height: '20px', width: '20px' }} checked={paymentOption==0?'checked':''} />
+                                                <p className="mt-10" style={{ fontWeight: '600' }}>Online Payment</p>
+                                            </div>
                                         </div>
-                                        <div className="ml-10">
-                                            <h5 style={{ fontWeight: '700', color: '#30252F', letterSpacing: '0.4px', marginBottom: '5px' }}>BlackBerry</h5>
-                                            <p style={{ fontSize: '14px', color: 'black', fontWeight: '400' }}>Men Blue Regular Fit Self Design Casual Shirt</p>
-                                            <p className="mt-0" style={{ fontSize: '15px', color: 'rgba(0,0,0,0.5)', fontWeight: '600' }}>Casual Shirt</p>
-                                            <div className="mt-20">
-                                                <Button onClick={openSizeModal} style={{ backgroundColor: '#30252F', color: 'white', fontSize: '13px' }}>Size : S &nbsp; <Icon icon="arrow-down" style={{ fontSize: '13px' }} /></Button>
-                                                <Button onClick={openQuantityModal} style={{ backgroundColor: '#30252F', color: 'white', fontSize: '13px', marginLeft: '6px' }}>Qty : 1 &nbsp; <Icon icon="arrow-down" style={{ fontSize: '13px' }} /></Button>
+                                        <div className="col-md-6" style={{ padding: '10px', cursor: 'pointer' }}>
+                                            <div onClick={()=>{
+                                                setPaymentOption(1);
+                                            }} className="d-flex flex-column align-items-center" style={{ padding: '30px', borderRadius: '9px', backgroundColor: 'rgba(0,0,0,0.05)' }}>
+                                                <input type="radio" value="1" style={{ height: '20px', width: '20px' }} checked={paymentOption==1?'checked':''} />
+                                                <p className="mt-10" style={{ fontWeight: '600' }}>Cash on Delivery</p>
                                             </div>
                                         </div>
                                     </div>
-                                    <div>
-                                        <p style={{ fontSize: '16px', color: 'black', fontWeight: '700' }}>₹320</p>
-                                        <div className="d-flex">
-                                            <p className="mt-0" style={{ fontSize: '15px', textDecoration: 'line-through', color: 'rgba(0,0,0,0.5)', fontWeight: '600' }}>₹1000</p>
-                                            <p className="mt-0" style={{ marginLeft: '8px', fontSize: '15px', color: 'red', fontWeight: '500' }}>51% OFF</p>
-                                        </div>
+                                    <div className="mt-20">
+                                        <input component={Link} to="/confirm" className="w-100" type="submit" value="Process to Pay" style={{ borderRadius: '10px', height: '44px', backgroundColor: '#30252F', fontSize: '17px', fontWeight: '600', color: 'white' }} />
                                     </div>
                                 </div>
-                            })
-                        }
 
+                                {
+                                    /********************************************************************************/
+                                    /********************************************************************************/
+                                    /********************************* RIGHT MOST SECTION***************************/
+                                    /********************************************************************************/
+                                    /********************************************************************************/
+                                }
 
-                    </div>
-
-                    {/*************************************THIRD STEP**************************************/}
-
-                    <div className="col-md-7" style={{ display: step == 2 ? "block" : "none" }}>
-                        <div className="d-flex flex-column mb-20" style={{ paddingtop: '7px', paddingBottom: '7px', width: '30%', backgroundColor: '#30252F', color: 'white', borderRadius: '30px' }}>
-                            <h4 style={{ color: 'white', fontWeight: '600', textAlign: 'center' }}>Payment</h4>
-                        </div>
-                        <div className="row">
-                            {
-                                cardData.map((data) => {
-                                    return <div className="col-md-6" style={{ padding: '10px', cursor: 'pointer' }}>
-                                        <div onClick={selectCheckBox(cardData.indexOf(data))} className="d-flex flex-column align-items-center" style={{ padding: '30px', borderRadius: '9px', backgroundColor: 'rgba(0,0,0,0.05)' }}>
-                                            <input type="radio" value={data.value} style={{ height: '20px', width: '20px' }} />
-                                            <p className="mt-10" style={{ fontWeight: '600' }}>{data.title}</p>
-                                        </div>
+                                <div className="col-md-3 mb-20 position-sticky">
+                                    <h5 style={{ color: '#30252F', fontWeight: '700', letterSpacing: '0.5px' }}>Order</h5>
+                                    <hr className="mt-10" style={{ borderTop: '1px solid rgba(0,0,0,0.3)' }} />
+                                    <div className="d-flex justify-content-between align-items-center">
+                                        <p style={pricingDetail}>Total MRP</p>
+                                        <p style={{ fontWeight: '600' }}>₹{calculateProductsMRP()}</p>
                                     </div>
-                                })
-                            }
-                        </div>
-                        <div className="mt-20">
-                            <form action="">
-                                <FormControl variant="outlined" style={{ width: '100%' }}>
-                                    <InputLabel htmlFor="outlined-adornment-password">Card Number</InputLabel>
-                                    <OutlinedInput
-                                        id="outlined-adornment-password"
-                                        type="text"
-                                        value=""
-                                        endAdornment={
-                                            <InputAdornment position="end">
-                                                <Icon icon="cc-visa" size="2x" />
-                                            </InputAdornment>
-                                        }
-                                        labelWidth={100}
-                                    />
-                                </FormControl>
-                                <FormControl variant="outlined" style={{ marginTop: '15px', width: '100%' }}>
-                                    <InputLabel htmlFor="outlined-adornment-password">Card Holder Name</InputLabel>
-                                    <OutlinedInput
-                                        id="outlined-adornment-password"
-                                        type="text"
-                                        value=""
-                                        endAdornment={
-                                            <InputAdornment position="end">
-                                                <Icon icon="user" size="2x" />
-                                            </InputAdornment>
-                                        }
-                                        labelWidth={140}
-                                    />
-                                </FormControl>
-                                <div className="d-flex" style={{ marginTop: '0px' }}>
-                                    <MuiPickersUtilsProvider utils={DateFnsUtils}>
-                                        <KeyboardDatePicker
-                                            inputVariant="outlined"
-                                            variant="outlined"
-                                            margin="normal"
-                                            id="date-picker-dialog"
-                                            label="Expiry Date"
-                                            format="MM/dd/yyyy"
-                                            value={selectedDate}
-                                            onChange={handleDateChange}
-                                            KeyboardButtonProps={{
-                                                'aria-label': 'change date',
-                                            }}
-                                        />
-                                    </MuiPickersUtilsProvider>
-                                    <FormControl variant="outlined" style={{ marginLeft: '20px', marginTop: '15px', width: '100%' }}>
-                                        <InputLabel htmlFor="outlined-adornment-password">CVV Code</InputLabel>
-                                        <OutlinedInput
-                                            id="outlined-adornment-password"
-                                            type="text"
-                                            value=""
-                                            endAdornment={
-                                                <InputAdornment position="end">
-                                                    <Icon icon="info" size="2x" />
-                                                </InputAdornment>
-                                            }
-                                            labelWidth={80}
-                                        />
-                                    </FormControl>
+                                    <div className="d-flex justify-content-between align-items-center">
+                                        <p style={pricingDetail}>Discounted on MRP</p>
+                                        <p style={{ fontWeight: '500', fontSize: '14px', color: 'green' }}>-₹{calculateProductsDiscountedPrice()}</p>
+                                    </div>
+                                    <div className="mt-10 d-flex justify-content-between align-items-center">
+                                        <p style={pricingDetail}>Coupon Discount</p>
+                                        <Link onClick={openCouponModal} style={{ color: '#30252F' }}>Apply Coupon</Link>
+                                    </div>
+                                    <div className="mt-10 d-flex justify-content-between align-items-center">
+                                        <p style={pricingDetail}>Shipping</p>
+                                        <Link style={{ fontWeight: '700', fontSize: '14px', color: 'green' }}>Free</Link>
+                                    </div>
+                                    <hr className="mt-10 mb-10" style={{ borderTop: '1px dashed rgba(0,0,0,0.3)' }} />
+                                    <div className="d-flex justify-content-between align-items-center back">
+                                        <p style={{ fontWeight: '700', color: 'black' }}>Total Amount</p>
+                                        <p style={{ fontWeight: '700', fontSize: '15px', color: 'black' }}>₹{calculateProductsTotalAmount()}</p>
+                                    </div>
                                 </div>
-                                {/* <Link className="w-100" to="/confirm" style={{ borderRadius: '10px', height: '44px', backgroundColor: '#30252F', fontSize: '17px', fontWeight: '600', color: 'white' }}>Process To Pay</Link> */}
-                                <input component={Link} to="/confirm" className="w-100" type="submit" value="Process to Pay" style={{ borderRadius: '10px', height: '44px', backgroundColor: '#30252F', fontSize: '17px', fontWeight: '600', color: 'white' }} />
-                            </form>
-                        </div>
-                    </div>
-
-                    {
-                        /********************************************************************************/
-                        /********************************************************************************/
-                        /********************************* RIGHT MOST SECTION***************************/
-                        /********************************************************************************/
-                        /********************************************************************************/
+                            </React.Fragment>
+                        ) : (
+                            <div>
+                                <h4 style={{ textAlign: 'center' }}>Empty Cart!</h4>
+                            </div>
+                        )
                     }
-
-                    <div className="col-md-3 mb-20 position-sticky">
-                        <h5 style={{ color: '#30252F', fontWeight: '700', letterSpacing: '0.5px' }}>Order</h5>
-                        <hr className="mt-10" style={{ borderTop: '1px solid rgba(0,0,0,0.3)' }} />
-                        <div className="d-flex justify-content-between align-items-center">
-                            <p style={pricingDetail}>Total MRP</p>
-                            <p style={{ fontWeight: '600' }}>₹720</p>
-                        </div>
-                        <div className="d-flex justify-content-between align-items-center">
-                            <p style={pricingDetail}>Discounted on MRP</p>
-                            <p style={{ fontWeight: '500', fontSize: '14px', color: 'green' }}>-₹420</p>
-                        </div>
-                        <div className="mt-10 d-flex justify-content-between align-items-center">
-                            <p style={pricingDetail}>Coupon Discount</p>
-                            <Link onClick={openCouponModal} style={{ color: '#30252F' }}>Apply Coupon</Link>
-                        </div>
-                        <div className="mt-10 d-flex justify-content-between align-items-center">
-                            <p style={pricingDetail}>Shipping</p>
-                            <Link style={{ fontWeight: '700', fontSize: '14px', color: 'green' }}>Free</Link>
-                        </div>
-                        <hr className="mt-10 mb-10" style={{ borderTop: '1px dashed rgba(0,0,0,0.3)' }} />
-                        <div className="d-flex justify-content-between align-items-center back">
-                            <p style={{ fontWeight: '700', color: 'black' }}>Total Amount</p>
-                            <p style={{ fontWeight: '700', fontSize: '15px', color: 'black' }}>-₹420</p>
-                        </div>
-                    </div>
                 </div>
             </div>
             {
@@ -744,4 +741,20 @@ const Checkout = (props) => {
     )
 }
 
-export default Checkout
+const mapStateToProps = state => {
+    return {
+        cart: state.dCart.cart,
+        isLoggedIn: state.dCustomer.isLoggedIn,
+        customerDetails: state.dCustomer.customerDetails
+    }
+}
+
+const mapActionToProps = {
+    addToCart: cartActions.addToCart,
+    deleteToCart: cartActions.deleteToCart,
+    checkIsLoggedIn: customerActions.checkIsLoggedIn,
+    setLoggedIn: customerActions.setLoggedIn,
+    setCustomerDetails: customerActions.setCustomerDetails
+}
+
+export default connect(mapStateToProps, mapActionToProps)(Checkout)

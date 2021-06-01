@@ -155,7 +155,7 @@ const Product = (props) => {
 
     return (
         <React.Fragment>
-            <Header show={props.show} login={props.login} isLoggedIn={props.isLoggedIn} setLogin={props.setLogin} setLogout={props.setLogout} />
+            <Header show={props.show} login={props.login} isLoggedIn={props.isLoggedIn} search={props.search} setLogin={props.setLogin} setLogout={props.setLogout} />
             {
                 /************************************************************************************************/
                 /************************************************************************************************/
@@ -231,10 +231,14 @@ const Product = (props) => {
                                                                                 "product_description": product.product_description,
                                                                                 "product_images": product.product_images[0],
                                                                                 "product_discount_price": product.product_discount_price,
+                                                                                "product_original_price": parseInt(product.product_original_price),
+                                                                                "product_discount": parseInt(product.product_original_price) - parseInt(product.product_discount_price),
                                                                                 "category_id": product.category_id,
+                                                                                "product_discount_percentage": product.product_discount_percentage,
                                                                                 "sub_category_id": product.sub_category_id,
+                                                                                "sub_category_name": product.sub_category_name,
                                                                                 "product_qty": 1,
-                                                                                "product_total_price": product.product_discount_price
+                                                                                "product_total_price": parseInt(product.product_discount_price)
 
                                                                             });
                                                                         } else {

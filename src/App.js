@@ -1,6 +1,6 @@
 import React from 'react'
 import { BrowserRouter as Router, Switch, Route, Link, NavLink } from 'react-router-dom'
-import { Drawer, Button, IconButton, Icon, Alert } from 'rsuite';
+import { Drawer, Button, IconButton, Icon, Alert, Input as InputR, InputGroup } from 'rsuite';
 import Rodal from 'rodal';
 import 'rodal/lib/rodal.css';
 import 'rsuite/lib/styles/index.less';
@@ -8,6 +8,7 @@ import 'rsuite/dist/styles/rsuite-default.css';
 import axios from 'axios';
 import { connect } from 'react-redux';
 import * as customerActions from "./actions/dCustomer"
+import * as cartActions from "./actions/dCart"
 
 /******************************* PAGE COMPONENT IMPORTING ***************************************/
 
@@ -29,6 +30,7 @@ import TextField from '@material-ui/core/TextField';
 import Address from './Pages/Address';
 import Profile from './Pages/Profile';
 import Cart from './Pages/Cart';
+import { Input } from '@material-ui/core';
 
 /************************ CUSTOM CSS VARIABLE DECLARATION ********************************************/
 const nameStyle = {
@@ -76,6 +78,9 @@ const userData = [
 
 
 const App = (props) => {
+  const [searchResults, setSearchResults] = React.useState([]);
+  const [searchInput, setSearchInput] = React.useState("");
+
   {
     /***********************************************************************************************/
     /************************** LOGIN/SIGNUP RODAL SWIPPING FUNCTIONALITY **************************/
@@ -94,6 +99,35 @@ const App = (props) => {
   const [password, setPassword] = React.useState("");
   const [fullName, setFullName] = React.useState("");
   const [mobile, setMobile] = React.useState("");
+
+  function calculateProductsMRP() {
+    var totalPrice = 0;
+    props.cart.forEach((product) => {
+      totalPrice += product.product_original_price;
+    })
+    return totalPrice;
+
+  }
+
+
+  function calculateProductsDiscountedPrice() {
+    var totalDiscountPrice = 0;
+    props.cart.forEach((product) => {
+      totalDiscountPrice += product.product_discount;
+    })
+    return totalDiscountPrice;
+
+  }
+
+  function calculateProductsTotalAmount() {
+    var totalAmount = 0;
+    props.cart.forEach((product) => {
+      totalAmount += product.product_total_price;
+    })
+    return totalAmount;
+
+  }
+
 
 
   function logout() {
@@ -168,6 +202,41 @@ const App = (props) => {
         console.log(error);
       })
   }
+
+  function searchByProductName(e) {
+    if (e.length > 2) {
+      axios.post('http://fashiondujourapi.com/v1/search', {
+        key: e
+      })
+        .then(function (response) {
+          console.log(response.data);
+          if (response.status === 200) {
+            if (response.data.RESPONSE.successful) {
+              setSearchResults(response.data.RESPONSE.data)
+            } else
+              Alert.error("Something went wrong!", 3000);
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+        })
+    }
+  }
+
+  {
+    /***********************************************************************************************/
+    /******************************** Search DRAWER FUNCTIONALITY ************************************/
+    /***********************************************************************************************/
+  }
+  const [showSearch, setShowSearch] = React.useState(false);
+  function closeSearch() {
+    setShowSearch(false);
+  }
+  function openSearchDrawer() {
+    setSearchResults([])
+    setSearchInput("")
+    setShowSearch(true);
+  }
   {
     /***********************************************************************************************/
     /******************************** CART DRAWER FUNCTIONALITY ************************************/
@@ -204,25 +273,80 @@ const App = (props) => {
     <>
       <Router>
         <Switch>
-          <Route path="/" exact render={(props) => <Home show={toggleDrawer} login={showLogin} isLoggedIn={props.isLoggedIn} setLogout={logout} />} />
-          <Route path="/cart" exact render={(props) => <Cart show={toggleDrawer} login={showLogin} isLoggedIn={props.isLoggedIn} setLogout={logout} />} />
-          <Route path="/about" exact render={(props) => <Aboutus show={toggleDrawer} login={showLogin} isLoggedIn={props.isLoggedIn} setLogout={logout} />} />
-          <Route path="/privacy-policy" exact render={(props) => <Privacy show={toggleDrawer} login={showLogin} isLoggedIn={props.isLoggedIn} setLogout={logout} />} />
-          <Route path="/term-and-condition" exact render={(props) => <Terms show={toggleDrawer} login={showLogin} isLoggedIn={props.isLoggedIn} setLogout={logout} />} />
-          <Route path="/wishlist" exact render={(props) => <Wishlist show={toggleDrawer} login={showLogin} isLoggedIn={props.isLoggedIn}  setLogout={logout} />} />
-          <Route path="/contact-us" exact render={(props) => <Contactus show={toggleDrawer} login={showLogin} isLoggedIn={props.isLoggedIn} setLogout={logout} />} />
-          <Route path="/product/detail/:productId" exact render={(props) => <Detail show={toggleDrawer} login={showLogin} />} isLoggedIn={props.isLoggedIn} setLogout={logout} />
-          <Route path="/offer" exact render={(props) => <Offer show={toggleDrawer} login={showLogin} isLoggedIn={props.isLoggedIn} setLogout={logout} />} />
-          <Route path="/checkout" exact render={(props) => <Checkout show={toggleDrawer} login={showLogin} />} isLoggedIn={props.isLoggedIn} setLogout={logout} />
-          <Route path="/products/:categoryId" render={(props) => <Product show={toggleDrawer} login={showLogin} />} isLoggedIn={props.isLoggedIn} setLogout={logout} />
-          <Route path="/track" exact render={(props) => <Track show={toggleDrawer} login={showLogin} isLoggedIn={props.isLoggedIn} setLogout={logout} />} />
-          <Route path="/track-detail" exact render={(props) => <TrackDetail show={toggleDrawer} login={showLogin} isLoggedIn={props.isLoggedIn} setLogout={logout} />} />
-          <Route path="/order" exact render={(props) => <Order show={toggleDrawer} login={showLogin} isLoggedIn={props.isLoggedIn}  setLogout={logout} />} />
-          <Route path="/address" exact render={(props) => <Address show={toggleDrawer} login={showLogin} />}  />
-          <Route path="/profile" exact render={(props) => <Profile show={toggleDrawer} login={showLogin} />} />
-          <Route path="/confirm" exact render={(props) => <Confirm />} />
+          <Route path="/" exact render={(props) => <Home search={openSearchDrawer} show={toggleDrawer} login={showLogin} isLoggedIn={props.isLoggedIn} setLogout={logout} />} />
+          <Route path="/cart" exact render={(props) => <Cart search={openSearchDrawer} show={toggleDrawer} login={showLogin} isLoggedIn={props.isLoggedIn} setLogout={logout} />} />
+          <Route path="/about" exact render={(props) => <Aboutus show={toggleDrawer} search={openSearchDrawer} login={showLogin} isLoggedIn={props.isLoggedIn} setLogout={logout} />} />
+          <Route path="/privacy-policy" exact render={(props) => <Privacy show={toggleDrawer} search={openSearchDrawer} login={showLogin} isLoggedIn={props.isLoggedIn} setLogout={logout} />} />
+          <Route path="/term-and-condition" exact render={(props) => <Terms show={toggleDrawer} login={showLogin} search={openSearchDrawer} isLoggedIn={props.isLoggedIn} setLogout={logout} />} />
+          <Route path="/wishlist" exact render={(props) => <Wishlist show={toggleDrawer} login={showLogin} isLoggedIn={props.isLoggedIn} search={openSearchDrawer} setLogout={logout} />} />
+          <Route path="/contact-us" exact render={(props) => <Contactus show={toggleDrawer} login={showLogin} isLoggedIn={props.isLoggedIn} setLogout={logout} search={openSearchDrawer} />} />
+          <Route path="/product/detail/:productId" exact render={(props) => <Detail show={toggleDrawer} login={showLogin} />} isLoggedIn={props.isLoggedIn} setLogout={logout} search={openSearchDrawer} />
+          <Route path="/offer" exact render={(props) => <Offer show={toggleDrawer} login={showLogin} isLoggedIn={props.isLoggedIn} setLogout={logout} search={openSearchDrawer} />} />
+          <Route path="/checkout" exact render={(props) => <Checkout show={toggleDrawer} login={showLogin} search={openSearchDrawer} />} />
+          <Route path="/products/:categoryId" render={(props) => <Product show={toggleDrawer} login={showLogin} />} isLoggedIn={props.isLoggedIn} search={openSearchDrawer} setLogout={logout} />
+          <Route path="/track" exact render={(props) => <Track show={toggleDrawer} login={showLogin} isLoggedIn={props.isLoggedIn} setLogout={logout} search={openSearchDrawer} />} />
+          <Route path="/track-detail" exact render={(props) => <TrackDetail show={toggleDrawer} login={showLogin} isLoggedIn={props.isLoggedIn} setLogout={logout} search={openSearchDrawer} />} />
+          <Route path="/order" exact render={(props) => <Order show={toggleDrawer} login={showLogin} isLoggedIn={props.isLoggedIn} setLogout={logout} search={openSearchDrawer} />} />
+          <Route path="/address" exact render={(props) => <Address show={toggleDrawer} login={showLogin} search={openSearchDrawer} />} />
+          <Route path="/profile" exact render={(props) => <Profile show={toggleDrawer} login={showLogin} search={openSearchDrawer} />} />
+          <Route path="/confirm" exact render={(props) => <Confirm i />} />
         </Switch>
+        {
+          /********************************************************************************/
+          /********************************************************************************/
+          /******************** Search DRAWER UI ********************************************/
+          /********************************************************************************/
+          /********************************************************************************/
+        }
 
+        <Drawer show={showSearch} onHide={closeSearch} size="sm" {...props}>
+          <Drawer.Header>
+            <Drawer.Title>
+              <p style={pricingStyle}>
+                <InputGroup className="mb-10 mt-20" inside>
+                  <InputR placeholder="Search By Product Name" value={searchInput} onChange={(e) => {
+                    setSearchInput(e);
+                    searchByProductName(e);
+                  }} />
+                  <InputGroup.Addon>
+                    <Icon icon="search" />
+                  </InputGroup.Addon>
+                </InputGroup>
+              </p>
+            </Drawer.Title>
+          </Drawer.Header>
+          <Drawer.Body>
+            {
+              searchInput.length > 2 ? (
+                <React.Fragment>
+                  {
+                    searchResults.length != 0 ? searchResults.map((product) => {
+                      return <Link to={"/product/detail/"+product.product_id}><div className="container mb-10">
+                        <div className="row" style={{ backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: '10px', paddingTop: '10px', paddingBottom: '10px' }}>
+                          <div className="col-md-3">
+                            <img src={product.product_images[0]} height="120px" width="100px" style={{ borderRadius: '10px' }} alt="product" />
+                          </div>
+                          <div className="col-md-6">
+                            <p style={nameStyle}>{product.product_name}</p>
+                            <p style={clothTypeName}>{product.sub_category_name}</p>
+                            <p style={pricingStyle}><span>{product.product_qty}</span>&nbsp; * &nbsp; ₹{product.product_discount_price}</p>
+                          </div>
+                        </div>
+                      </div>
+                      </Link>
+                    }) : (
+                      <div>
+                        <h4 style={{ textAlign: 'center', marginTop: '30px' }}>Products not found!</h4>
+                      </div>
+                    )
+                  }
+                </React.Fragment>
+              ) : (
+                <div></div>
+              )
+            }
+          </Drawer.Body>
+        </Drawer>
         {
           /********************************************************************************/
           /********************************************************************************/
@@ -231,7 +355,7 @@ const App = (props) => {
           /********************************************************************************/
         }
 
-        <Drawer show={showD} onHide={close} size="sm">
+        <Drawer show={showD} onHide={close} size="sm" {...props}>
           <Drawer.Header>
             <Drawer.Title>
               <p style={pricingStyle}>Your Cart</p>
@@ -241,21 +365,37 @@ const App = (props) => {
             {
               props.isLoggedIn ? <div>
                 {
-                  ['', ''].map((data) => {
+                  props.cart.map((product) => {
                     return <div className="container mb-10">
                       <div className="row" style={{ backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: '10px', paddingTop: '10px', paddingBottom: '10px' }}>
                         <div className="col-md-3">
-                          <img src="imgs/Womens/DressBerry/Dresses/Women Black & Off-White Tropical Printed A-Line Dress/img1.jpg" height="120px" width="100px" style={{ borderRadius: '10px' }} alt="product" />
+                          <img src={product.product_images} height="120px" width="100px" style={{ borderRadius: '10px' }} alt="product" />
                         </div>
                         <div className="col-md-6">
-                          <p style={nameStyle}>Men Blue Regular Fit Self Design Casual Shirt</p>
-                          <p style={clothTypeName}>Casual Shirt</p>
-                          <p style={pricingStyle}><span>2</span>&nbsp; * &nbsp; $2000</p>
+                          <p style={nameStyle}>{product.product_name}</p>
+                          <p style={clothTypeName}>{product.sub_category_name}</p>
+                          <p style={pricingStyle}><span>{product.product_qty}</span>&nbsp; * &nbsp; ₹{product.product_discount_price}</p>
                         </div>
                         <div className="d-flex col-md-3 align-items-center">
-                          <IconButton icon={<Icon icon="minus" />} />
-                          <p style={{ marginLeft: '10px', marginRight: '10px' }}>1</p>
-                          <IconButton icon={<Icon icon="plus" />} />
+                          <IconButton icon={<Icon icon="minus" onClick={() => {
+                            props.deleteToCart(product.product_id);
+                          }} />} />
+                          <p style={{ marginLeft: '10px', marginRight: '10px' }}>{product.product_qty}</p>
+                          <IconButton icon={<Icon icon="plus" onClick={() => {
+                            props.addToCart({
+                              "product_id": product.product_id,
+                              "product_name": product.product_name,
+                              "product_description": product.product_description,
+                              "product_images": product.product_images,
+                              "product_discount_price": product.product_discount_price,
+                              "category_id": product.category_id,
+                              "sub_category_id": product.sub_category_id,
+                              "sub_category_name": product.sub_category_name,
+                              "product_qty": 1,
+                              "product_total_price": parseInt(product.product_discount_price)
+
+                            });
+                          }} />} />
                         </div>
                       </div>
                     </div>
@@ -264,18 +404,18 @@ const App = (props) => {
                 <hr style={{ borderTop: '1px dashed rgba(0,0,0,0.4)' }} />
                 <div className="">
                   <div className="d-flex justify-content-between align-items-center">
-                    <p style={pricingStyle}>Gift Wrapping</p>
-                    <p style={pricingStyle}>$0</p>
+                    <p style={pricingStyle}>Total MRP</p>
+                    <p style={pricingStyle}>₹{calculateProductsMRP()}</p>
                   </div>
                   <hr style={{ borderTop: '1px dashed rgba(0,0,0,0.4)' }} />
                   <div className="d-flex justify-content-between align-items-center">
-                    <p style={pricingStyle}>Tax</p>
-                    <p style={pricingStyle}>$100</p>
+                    <p style={pricingStyle}>Discounted on MRP</p>
+                    <p style={pricingStyle}>-₹{calculateProductsDiscountedPrice()}</p>
                   </div>
                   <hr style={{ borderTop: '1px dashed rgba(0,0,0,0.4)' }} />
                   <div className="d-flex justify-content-between align-items-center">
                     <p style={pricingStyle}>Grand Total (Including Tax)</p>
-                    <p style={pricingStyle}>$1524</p>
+                    <p style={pricingStyle}>₹{calculateProductsTotalAmount()}</p>
                   </div>
                 </div>
               </div> : <div className="d-flex flex-column align-items-center">
@@ -365,12 +505,15 @@ const App = (props) => {
 
 const mapStateToProps = state => {
   return {
+    cart: state.dCart.cart,
     isLoggedIn: state.dCustomer.isLoggedIn,
     customerDetails: state.dCustomer.customerDetails
   }
 }
 
 const mapActionToProps = {
+  addToCart: cartActions.addToCart,
+  deleteToCart: cartActions.deleteToCart,
   checkIsLoggedIn: customerActions.checkIsLoggedIn,
   setLoggedIn: customerActions.setLoggedIn,
   setCustomerDetails: customerActions.setCustomerDetails

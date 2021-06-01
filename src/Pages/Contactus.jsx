@@ -18,7 +18,7 @@ function hideContact() {
 const Contactus = (props) => {
     return (
         <React.Fragment>
-            <Header show={props.show} login={props.login} isLoggedIn={props.isLoggedIn} setLogin={props.setLogin} setLogout={props.setLogout} />
+            <Header search={props.search} show={props.show} login={props.login} isLoggedIn={props.isLoggedIn} setLogin={props.setLogin} setLogout={props.setLogout} />
             <div className="container-fluid">
                 <div className="row d-none d-md-flex contact-side-bar pt-30 pb-30" onMouseOut={hideContact} onMouseOver={showContact}>
                     <div className="container col-md-10 contact-section">

@@ -69,9 +69,7 @@ const Detail = (props) => {
         axios.get('http://fashiondujourapi.com/v1/product/details/' + productId)
             .then(function (response) {
                 if (response.status === 200) {
-                    if (response.data.success) {
-                        setProductDetails(response.data);
-                    }
+                    setProductDetails(response.data);
                 }
             })
             .catch(function (error) {
@@ -85,7 +83,7 @@ const Detail = (props) => {
 
     return (
         <React.Fragment>
-            <Header show={props.show} login={props.login} isLoggedIn={props.isLoggedIn} setLogin={props.setLogin} setLogout={props.setLogout} />
+            <Header search={props.search} show={props.show} login={props.login} isLoggedIn={props.isLoggedIn} setLogin={props.setLogin} setLogout={props.setLogout} />
             {
                 /***********************************************************************************/
                 /***********************************************************************************/
@@ -97,13 +95,16 @@ const Detail = (props) => {
                 <div className="row">
                     <div className="col-md-6 d-flex">
                         <div>
-                            <div className="mb-10" style={{ height: '140px', width: '110px', backgroundSize: '100% 100%', backgroundImage: 'url("imgs/Womens/DressBerry/Dresses/Navy Blue Printed Maxi Sustainable Dress/img1.webp")' }}></div>
-                            <div className="mb-10" style={{ height: '140px', width: '110px', backgroundSize: '100% 100%', backgroundImage: 'url("imgs/Womens/DressBerry/Dresses/Navy Blue Printed Maxi Sustainable Dress/img2.jpg")' }}></div>
-                            <div className="mb-10" style={{ height: '140px', width: '110px', backgroundSize: '100% 100%', backgroundImage: 'url("imgs/Womens/DressBerry/Dresses/Navy Blue Printed Maxi Sustainable Dress/img3.jpg")' }}></div>
-                            <div className="mb-10" style={{ height: '140px', width: '110px', backgroundSize: '100% 100%', backgroundImage: 'url("imgs/Womens/DressBerry/Dresses/Navy Blue Printed Maxi Sustainable Dress/img4.webp")' }}></div>
+                            {
+                                productDetails.product_images.map((imageUrl)=>{
+                                    return (
+                                        <div className="mb-10" style={{ height: '140px', width: '110px', backgroundSize: '100% 100%', backgroundImage: 'url("'+imageUrl+'")' }}></div>
+                                    )
+                                })
+                            }
                         </div>
                         <div>
-                            <div className="mb-10 ml-10" style={{ borderRadius: '8px', height: '590px', width: '500px', backgroundSize: '100% 100%', backgroundImage: 'url("imgs/Womens/DressBerry/Dresses/Navy Blue Printed Maxi Sustainable Dress/img4.webp")' }}></div>
+                            <div className="mb-10 ml-10" style={{ borderRadius: '8px', height: '590px', width: '500px', backgroundSize: '100% 100%', backgroundImage: 'url("'+productDetails.product_images[0]+'")' }}></div>
                         </div>
                     </div>
                     <div className="col-md-6">

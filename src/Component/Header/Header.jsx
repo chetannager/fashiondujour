@@ -18,6 +18,7 @@ import TreeItem from '@material-ui/lab/TreeItem';
 import { connect } from 'react-redux';
 import * as customerActions from "./../../actions/dCustomer"
 import * as cartActions from "../../actions/dCart"
+import axios from 'axios';
 
 const style = {
     color: '#30252F',
@@ -103,6 +104,31 @@ const Header = (props) => {
         }
     }
 
+    const [wishlistProducts, setWishlistProducts] = React.useState([]);
+
+    // const getAllWishlistProducts = () => {
+    //     axios.post('http://fashiondujourapi.com/v1/wishlist', {
+    //         customer_id: props.customerDetails["customer_id"]
+    //     })
+    //         .then(function (response) {
+    //             if (response.status === 200) {
+    //                 if (response.data.RESPONSE.successful) {
+    //                     setWishlistProducts(response.data.RESPONSE.products);
+    //                 }
+    //             }
+    //         })
+    //         .catch(function (error) {
+    //             console.log(error);
+    //         })
+    // }
+
+    // React.useEffect(() => {
+    //     props.checkIsLoggedIn();
+    //     if (props.isLoggedIn) {
+    //         getAllWishlistProducts();
+    //     }
+    // }, [])
+
     return (
         <React.Fragment>
             <div className="container-fluid pt-10 pb-10 d-none d-md-block header-1">
@@ -139,13 +165,13 @@ const Header = (props) => {
                                 </li>
                                 <li>
                                     <IconButton style={{ border: 'none', outline: 'none', textDecoration: 'none' }} component={Link} to="/wishlist" aria-label="favourite">
-                                        <Badge badgeContent={props.isLoggedIn ? 4 : 0} color="error">
+                                        <Badge badgeContent={props.isLoggedIn ? wishlistProducts.length  : 0} color="error">
                                             <FavoriteBorderOutlinedIcon style={{ fontSize: '20px', color: '#30252F' }} />
                                         </Badge>
                                     </IconButton>
                                 </li>
                                 <li>
-                                    <IconButton aria-label="search">
+                                    <IconButton aria-label="search" onClick={()=>{props.search()}}>
                                         <SearchIcon style={{ fontSize: '23px', color: '#30252F' }} />
                                     </IconButton>
                                 </li>

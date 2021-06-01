@@ -22,7 +22,7 @@ const Profile = (props) => {
 
     return (
         <React.Fragment>
-            <Header show={props.show} login={props.login} />
+            <Header search={props.search} show={props.show} login={props.login} />
             <div className="container d-none d-md-block mt-80 mb-40 profile">
                 <div className="container ml-10">
                     <div className="row align-items-center shadow-sm pt-10 pb-10" style={{ borderRadius: '5px' }}>

@@ -209,7 +209,7 @@ const Wishlist = (props) => {
 
     return (
         <React.Fragment>
-            <Header show={props.show} login={props.login} />
+            <Header search={props.search} show={props.show} login={props.login} />
             {
                 props.isLoggedIn ? (
 

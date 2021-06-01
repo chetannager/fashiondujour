@@ -6,7 +6,7 @@ import { Button } from 'rsuite'
 const Track = (props) => {
     return (
         <React.Fragment>
-            <Header show={props.show} login={props.login} isLoggedIn={props.isLoggedIn} setLogin={props.setLogin} setLogout={props.setLogout} />
+            <Header search={props.search} show={props.show} login={props.login} isLoggedIn={props.isLoggedIn} setLogin={props.setLogin} setLogout={props.setLogout} />
             <div className="container-fluid d-none d-md-block mt-80">
                 {
                     props.isLoggedIn ? <div className="track-order">

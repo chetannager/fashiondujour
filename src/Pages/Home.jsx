@@ -51,7 +51,7 @@ const sareeUrl = [
 const Home = (props) => {
     return (
         <React.Fragment>
-            <Header show={props.show} login={props.login} isLoggedIn={props.isLoggedIn} setLogin={props.setLogin} setLogout={props.setLogout} />
+            <Header search={props.search} show={props.show} login={props.login} isLoggedIn={props.isLoggedIn} setLogin={props.setLogin} setLogout={props.setLogout} />
             {
                 /*****************************************************************************************************/
                 /*****************************************************************************************************/

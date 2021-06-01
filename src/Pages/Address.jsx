@@ -98,7 +98,7 @@ const Address = (props) => {
 
     return (
         <React.Fragment>
-            <Header show={props.show} login={props.login} />
+            <Header search={props.search} show={props.show} login={props.login} />
             {
                 isLoading ? (
                     <div className="mt-100 pt-100 pb-100 mb-100 container-fluid d-flex align-items-center justify-content-center">
@@ -147,7 +147,7 @@ const Address = (props) => {
 
                                                 ) : (
                                                     <div>
-                                                        <h1>No Address Available</h1>
+                                                        <h4 style={{ textAlign: 'center' }}>No Address Available</h4>
                                                     </div>
                                                 )
                                             }

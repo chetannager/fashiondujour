@@ -93,7 +93,7 @@ const terms = [
 const Terms = (props) => {
     return (
         <React.Fragment>
-            <Header show={props.show} login={props.login} isLoggedIn={props.isLoggedIn} setLogin={props.setLogin} setLogout={props.setLogout} />
+            <Header search={props.search} show={props.show} login={props.login} isLoggedIn={props.isLoggedIn} setLogin={props.setLogin} setLogout={props.setLogout} />
             <div className="container mt-80">
                 <p style={{ fontSize: '35px', fontWeight: '700' }}>Terms &nbsp;&amp;&nbsp; Conditions</p>
                 <hr className="mt-10 mb-40" style={{ width: '100px', borderTop: '2px solid rgba(0,0,0,0.8)' }} />
