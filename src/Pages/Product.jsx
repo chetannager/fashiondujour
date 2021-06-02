@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import * as cartActions from "../actions/dCart"
 import * as customerActions from "../actions/dCustomer"
 import axios from 'axios';
-import { CircularProgress } from '@material-ui/core';
+import { CircularProgress, Radio } from '@material-ui/core';
 
 const addTooltip = (
     <Tooltip>Add to cart</Tooltip>
@@ -103,6 +103,8 @@ const Product = (props) => {
     const [products, setProducts] = React.useState([]);
     const [filterProducts, setfilterProducts] = React.useState([]);
     const [categoriesByproducts, setCategoriesByproducts] = React.useState([]);
+    const [subCategoriesfilter, setSubCategoriesfilter] = React.useState("All");
+    const [pricesFilter, setPricesFilter] = React.useState("All");
 
     const getAllProducts = (categoryId) => {
         axios.get('http://fashiondujourapi.com/v1/products/' + categoryId)
@@ -176,42 +178,56 @@ const Product = (props) => {
                                 <div className="col-md-2" style={{ position: 'sticky', top: '20px' }}>
                                     <h6 style={{ fontWeight: 'bold', color: '#30252F', letterSpacing: '0.2px' }}>FILTER</h6>
                                     <hr className="mt-0 mb-20" style={{ borderTop: '1px solid rgba(0,0,0,0.3)' }} />
-                                    <CheckboxGroup name="checkboxList">
-                                        {
-                                            categoriesByproducts.length != 0 ? (
-                                                <React.Fragment>
-                                                    <p style={{ fontWeight: 'bold', color: '#30252F', letterSpacing: '0.2px' }}>Category</p>
-                                                    {
-                                                        categoriesByproducts.map((category) => {
-                                                            return (
-                                                                <React.Fragment>
-                                                                    <Checkbox value={category} onChange={(e) => {
+                                    {
+                                        categoriesByproducts.length != 0 ? (
+                                            <React.Fragment>
+                                                <p style={{ fontWeight: 'bold', color: '#30252F', letterSpacing: '0.2px' }}>Category</p>
+                                                <Radio name="sub_category_filter" value="All" onChange={(e) => {
+                                                    setSubCategoriesfilter(e.target.value)
+                                                }} checked={subCategoriesfilter == 'All' ? 'checked' : ''} />All<br />
+                                                {
+                                                    categoriesByproducts.map((category) => {
+                                                        return (
+                                                            <React.Fragment>
+                                                                <Radio name="sub_category_filter" value={category} onChange={(e) => {
+                                                                    setSubCategoriesfilter(e.target.value)
+                                                                }} checked={subCategoriesfilter == category ? 'checked' : ''} />{category}<br />
+                                                            </React.Fragment>
+                                                        )
 
-                                                                    }}><p style={filterTitle}>{category} </p></Checkbox>
-                                                                </React.Fragment>
-                                                            )
-
-                                                        })
-                                                    }
-                                                </React.Fragment>
-                                            ) : (
-                                                <div></div>
-                                            )
-                                        }
-                                        <hr className="mt-10 mb-20" style={{ borderTop: '1px solid rgba(0,0,0,0.3)' }} />
+                                                    })
+                                                }
+                                            </React.Fragment>
+                                        ) : (
+                                            <div></div>
+                                        )
+                                    }
+                                    
+                                        {/* <hr className="mt-10 mb-20" style={{ borderTop: '1px solid rgba(0,0,0,0.3)' }} />
                                         <p style={{ fontWeight: 'bold', color: '#30252F', letterSpacing: '0.2px' }}>Brand</p>
                                         <Checkbox><p style={filterTitle}>Tokyo Talkies</p></Checkbox>
                                         <Checkbox ><p style={filterTitle}>H &amp; M</p></Checkbox>
-                                        <Checkbox ><p style={filterTitle}>DressBerry</p></Checkbox>
+                                        <Checkbox ><p style={filterTitle}>DressBerry</p></Checkbox> */}
 
 
                                         <hr className="mt-10 mb-20" style={{ borderTop: '1px solid rgba(0,0,0,0.3)' }} />
                                         <p style={{ fontWeight: 'bold', color: '#30252F', letterSpacing: '0.2px' }}>Price</p>
-                                        <Checkbox><p style={filterTitle}>₹400-₹700</p></Checkbox>
-                                        <Checkbox ><p style={filterTitle}>₹800-₹1200</p></Checkbox>
-                                        <Checkbox ><p style={filterTitle}>₹1200-₹2000</p></Checkbox>
-                                        <Checkbox ><p style={filterTitle}>₹2000-₹3000</p></Checkbox>
-                                    </CheckboxGroup>
+                                        <Radio name="pricesFilter" value="All" onChange={(e) => {
+                                                    setPricesFilter(e.target.value)
+                                                }} checked={pricesFilter == 'All' ? 'checked' : ''} />All<br />
+                                        <Radio value="400-700" name="pricesFilter" checked={pricesFilter == '400-700' ? 'checked' : ''} onChange={(e) => {
+                                                                    setPricesFilter(e.target.value)
+                                                                }} />₹400-₹700<br/>
+                                        <Radio value="701-1200" name="pricesFilter" checked={pricesFilter == '701-1200' ? 'checked' : ''} onChange={(e) => {
+                                                                    setPricesFilter(e.target.value)
+                                                                }} />₹800-₹1200<br/>
+                                        <Radio value="1201-2000" name="pricesFilter" checked={pricesFilter == '1201-2000' ? 'checked' : ''} onChange={(e) => {
+                                                                    setPricesFilter(e.target.value)
+                                                                }} />₹1200-₹2000<br/>
+                                        <Radio value="2001-3000" name="pricesFilter" checked={pricesFilter == '2001-3000' ? 'checked' : ''} onChange={(e) => {
+                                                                    setPricesFilter(e.target.value)
+                                                                }} />₹2000-₹3000<br/>
+                                    
                                 </div>
                                 <div className="col-md-10">
                                     <div className="row">
